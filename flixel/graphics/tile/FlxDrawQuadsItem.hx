@@ -125,6 +125,9 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 
 		final shader = shader != null ? shader : graphics.shader;
 		shader.bitmap.input = graphics.bitmap;
+		if (graphics.bitmap == null)
+			return;
+
 		shader.bitmap.filter = (camera.antialiasing || antialiasing) ? LINEAR : NEAREST;
 		shader.alpha.value = alphas;
 
@@ -136,7 +139,20 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 
 		setParameterValue(shader.hasTransform, true);
 		setParameterValue(shader.hasColorTransform, colored || hasColorOffsets);
-		setParameterValue(shader.premultiplyAlpha, !shader.bitmap.input.readable && shader.bitmap.input.__texture != null && shader.bitmap.input.__texture.__premultiplyAlpha);
+		if (shader.bitmap.input == null)
+			return;
+
+		var bmp = shader.bitmap.input;
+
+		var premult = false;
+		if (bmp != null && bmp.__texture != null)
+		{
+			premult = !bmp.readable && bmp.__texture.__premultiplyAlpha;
+		}
+		if (shader.premultiplyAlpha != null)
+		{
+			setParameterValue(shader.premultiplyAlpha, premult);
+		}
 
 		camera.canvas.graphics.overrideBlendMode(blend);
 		camera.canvas.graphics.beginShaderFill(shader);
